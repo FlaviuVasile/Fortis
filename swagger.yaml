@@ -1,0 +1,958 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Agricola
+  description: API pentru jocul simplificat Agricola
+host: localhost
+basePath: /Fortis/api/public
+schemes:
+  - http
+produces:
+  - application/json
+tags:
+  - name: Player
+    description: Operatii pentru jucatori
+  - name: Game
+    description: Operatii pentru jocuri
+  - name: Game-Resurses
+    description: Operatii pentru resurse
+  - name: Game-Score
+    description: Operatii pentru scor
+  - name: Game-Action
+    description: Actiunile player in joc
+  - name: Game-State
+
+ 
+paths:
+  /players:
+    post:
+      tags:
+        - Player
+      summary: Creează un jucător
+      consumes:
+        - application/json
+
+      parameters:
+        - in: body
+          name: player
+          required: true
+          schema:
+            $ref: '#/definitions/Player'
+      responses:
+        '201':
+          description: Jucător creat
+        '400':
+          description: Date invalide
+    get:
+      tags:
+        - Player
+      summary: Listează toți jucătorii
+      responses:
+
+        '200':
+          description: Listă jucători
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Player'
+  /players/{playerId}:
+    get:
+      tags:
+        - Player
+      summary: Detalii despre un jucător
+      parameters:
+        - name: playerId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Detalii jucător
+          schema:
+            $ref: '#/definitions/Player'
+        '404':
+          description: Jucător inexistent
+    put:
+      tags:
+        - Player
+      summary: Actualizează jucătorul
+      consumes:
+        - application/json
+      parameters:
+        - name: playerId
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: player
+          required: true
+          schema:
+            $ref: '#/definitions/Player'
+      responses:
+        '200':
+          description: Jucător actualizat
+          
+  /players/{playerId}/status:
+   put:
+    tags:
+        - Player
+    summary: Activează/dezactivează jucătorul
+    consumes:
+      - application/json
+    parameters:
+      - name: playerId
+        in: path
+        required: true
+        type: integer
+      - in: body
+        name: status
+        required: true
+        schema:
+          type: object
+          required:
+            - active
+          properties:
+            active:
+              type: boolean
+    responses:
+      '200':
+        description: Status jucător actualizat
+      '404':
+        description: Jucător inexistent
+
+  /games:
+    post:
+      tags:
+        - Game
+      summary: Creează un joc nou
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: game
+          required: true
+          schema:
+            $ref: '#/definitions/GameCreation'
+      responses:
+        '201':
+          description: Joc creat
+        '400':
+          description: Date invalide
+        '405':
+          description: Metodă neacceptată
+    get:
+      tags:
+        - Game
+      summary: Obține lista de jocuri
+      responses:
+        '200':
+          description: Listă jocuri
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Game'
+  /games/active:
+    get:
+      tags:
+        - Game
+      summary: Lista jocurilor active
+      responses:
+        '200':
+          description: Jocuri active
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Game'
+  /games/{gameId}:
+    get:
+      tags:
+        - Game
+      summary: Detalii despre un joc
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Detalii joc
+          schema:
+            $ref: '#/definitions/Game'
+        '404':
+          description: Joc inexistent
+    delete:
+      tags:
+        - Game
+      summary: Șterge un joc
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: Joc șters
+        '404':
+          description: Joc inexistent
+    put:
+      tags:
+        - Game
+      summary: Actualizează informațiile jocului
+      consumes:
+        - application/json
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: game
+          required: true
+          schema:
+            $ref: '#/definitions/Game'
+      responses:
+        '200':
+          description: Joc actualizat
+  /games/{gameId}/summary:
+    get:
+      
+      tags:
+        - Game
+      summary: Rezumatul final al jocului
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Rezumat joc
+          schema:
+            type: object
+            properties:
+              winner_id:
+                type: integer
+              loser_id:
+                type: integer
+              rounds_played:
+                type: integer
+              score:
+                type: object
+                properties:
+                  player1:
+                    type: integer
+                  player2:
+                    type: integer
+
+  /games/{gameId}/join:
+    post:
+      tags:
+        - Game
+      summary: Un jucător se alătură jocului
+      consumes:
+        - application/json
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: player
+          required: true
+          schema:
+            $ref: '#/definitions/Player'
+      responses:
+        '200':
+          description: Jucător adăugat
+        '400':
+          description: gameId lipsă sau invalid
+        '404':
+          description: Joc inexistent
+        '405':
+          description: Metodă neacceptată
+  /games/{gameId}/start:
+    post:
+      tags:
+        - Game
+      summary: Pornește jocul
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Joc pornit
+        '400':
+          description: GameId lipsă sau invalid
+        '404':
+          description: Joc Inexistent
+        '405':
+          description: Metoda neacceptata
+  /games/{gameId}/rules:
+    get:
+      tags:
+        - Game
+      summary: Reguli curente
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Reguli joc
+          schema:
+            $ref: '#/definitions/GameRules'
+    
+  /games/{gameId}/board/resources:
+    get:
+      tags:
+         - Game-Resurses
+      summary: Vezi resursele disponibile pe tablă
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Resurse pe tablă
+          schema:
+            type: object
+            properties:
+              wood:
+                type: integer
+              clay:
+                type: integer
+              food:
+                type: integer
+              reed:
+                type: integer
+              stone:
+                type: integer
+              sheep:
+                type: integer
+              boar:
+                type: integer
+              cow:
+                type: integer
+
+        '404':
+          description: Resurse inexistente pentru acest joc
+        '405':
+          description: Metodă neacceptată
+          
+    put:
+      tags:
+        - Game-Resurses
+      summary: Actualizează resursele pe tablă
+      consumes:
+        - application/json
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: resources
+          required: true
+          schema:
+            type: object
+            properties:
+              wood:
+                type: integer
+              clay:
+                type: integer
+              food:
+                type: integer
+              reed:
+                type: integer
+              stone:
+                type: integer
+              sheep:
+                type: integer
+              boar:
+                type: integer
+              cow:
+                type: integer
+
+      responses:
+        '200':
+          description: Resurse actualizate
+        '405':
+          description: Metodă neacceptată
+  
+  /games/{gameId}/farmers:
+    get:
+      tags:
+        - Game
+      summary: Returnează numărul de fermieri per jucător în joc
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Fermieri per jucător
+          schema:
+            type: object
+            additionalProperties:
+              type: integer
+        '404':
+          description: Joc inexistent
+
+
+  /game/export/scores:
+    get:
+      tags:
+        - Game-Score
+      summary: Exportă scorurile jocurilor
+      responses:
+        '200':
+          description: Scoruri exportate
+        '404':
+          description: Date inexistente
+
+
+  /game/export/history:
+    get:
+      tags:
+        - Game-Score
+      summary: Exportă istoricul jocurilor
+      responses:
+        '200':
+          description: Istoric exportat
+        '404':
+          description: Istoric inexistent
+        
+  /stats/leaderboard:
+    get:
+      tags:
+        - Game-Score
+      summary: Afișează clasamentul global
+      responses:
+        '200':
+          description: Clasament returnat
+
+  
+  /stats/player/{playerId}:
+    get:
+      tags:
+        - Game-Score
+      summary: Statistici individuale ale unui jucător
+      parameters:
+        - name: playerId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Statistici returnate
+        '404':
+          description: Jucător inexistent
+
+  
+
+  
+
+  /games/{gameId}/players/{playerId}/resources:
+    put:
+      
+      tags:
+        - Game-Resurses
+      summary: Actualizează resursele unui jucător
+      consumes:
+        - application/json
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+        - name: playerId
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: resources
+          required: true
+          schema:
+            type: object
+            properties:
+               wood:
+                type: integer
+               clay:
+                type: integer
+               food:
+                type: integer
+               reed:
+                type: integer
+               stone:
+                type: integer
+               sheep:
+                type: integer
+               boar:
+                type: integer
+               cow:
+                type: integer
+      responses:
+        '200':
+          description: Resurse actualizate
+        '404':
+          description: Joc sau jucător inexistent
+
+         
+  /games/{gameId}/players/{playerId}/actions/gather:
+    post:
+      tags:
+        - Game-Action
+      summary: Jucătorul adună o resursă
+      consumes:
+        - application/json
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+        - name: playerId
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: payload
+          required: true
+          schema:
+            type: object
+            required:
+              - resource_type
+            properties:
+              resource_type:
+                type: string
+                enum:
+                  - wood
+                  - clay
+                  - food
+                  - stone
+                  - reed
+                  - sheep
+                  - boar
+                  - cow
+      responses:
+        '200':
+          description: Resursă colectată
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              board_resources:
+                type: object
+                additionalProperties:
+                  type: integer
+              player_resources:
+                type: object
+                additionalProperties:
+                  type: integer
+        '400':
+          description: Cerere invalidă
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+        '404':
+          description: Joc inexistent
+          schema:
+            type: object
+                properties:
+                  error:
+                    type: string
+  
+  /actions:
+    get:
+      tags:
+        - Game-Action
+      summary: Listează toate acțiunile înregistrate
+      responses:
+        '200':
+          description: Listă acțiuni
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                game_id:
+                  type: integer
+                player_id:
+                  type: integer
+                type:
+                  type: string
+                data:
+                  type: string
+        '404':
+          description: Fără acțiuni
+
+
+  /games/{gameId}/players/{playerId}/actions/feed:
+    post:
+      tags:
+        - Game-Action
+      summary: Jucătorul își hrănește familia
+      consumes:
+        - application/json
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+        - name: playerId
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: feed
+          required: true
+          schema:
+            type: object
+            properties:
+              required_food:
+                type: integer
+              allow_sacrifice:
+                type: boolean
+
+      responses:
+        '200':
+          description: Familia hrănită cu succes
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              food_initial:
+                type: integer
+              food_needed:
+                type: integer
+              allow_sacrifice:
+                type: boolean
+              resources:
+                type: object
+                additionalProperties:
+                  type: integer
+              sacrificed_animals:
+                type: object
+                additionalProperties:
+                  type: integer
+              penalty:
+                type: integer
+        '400':
+          description: Cerere invalidă
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+        '404':
+          description: Joc inexistent
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+  /games/{gameId}/end:
+    post:
+      tags:
+        - Game
+      summary: Încheie un joc forțat
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Joc încheiat cu succes
+        '404':
+          description: Joc inexistent
+  
+  /games/{gameId}/players/{playerId}/actions/build-house:
+   post:
+    tags:
+      - Game-Action
+    summary: Jucătorul construiește o casă
+    description: Consumă resurse pentru a construi o casă de tip wood, clay sau stone.
+    consumes:
+      - application/json
+    parameters:
+      - name: gameId
+        in: path
+        required: true
+        type: integer
+      - name: playerId
+        in: path
+        required: true
+        type: integer
+      - in: body
+        name: build
+        required: true
+        schema:
+          type: object
+          required:
+            - type
+          properties:
+            type:
+              type: string
+              enum: [wood, clay, stone]
+    responses:
+      '200':
+        description: Casă construită cu succes
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            remaining_resources:
+              type: object
+            structures:
+              type: object
+      '400':
+        description: Resurse insuficiente sau tip invalid
+      '403':
+        description: Jucătorul nu poate construi
+      '404':
+        description: Joc sau jucător inexistent
+
+  /games/{gameId}/players/{playerId}/actions/add-farmer:
+    post:
+      tags:
+        - Game-Action
+      summary: Jucătorul adaugă un fermier
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          type: integer
+        - name: playerId
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Fermier adăugat cu succes
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              total_farmers:
+                type: integer
+              houses:
+                type: integer
+        '400':
+          description: Nu există loc disponibil
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+        '403':
+          description: Jucătorul nu aparține jocului
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+        '404':
+          description: Joc inexistent
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+  
+  /state/{gameId}:
+   get:
+    tags:
+        - Game-State
+    summary: Starea jocului
+    parameters:
+      - name: gameId
+        in: path
+        required: true
+        type: integer
+    responses:
+      '200':
+        description: Stare joc
+        schema:
+          $ref: '#/definitions/GameState'
+      '400':
+        description: gameId lipsă sau invalid
+      '404':
+        description: Joc inexistent
+
+          
+definitions:
+  Player:
+    type: object
+    required:
+      - name
+      - active
+    properties:
+      id:
+        type: integer
+        readOnly: true
+      name:
+        type: string
+      active:
+        type: boolean
+  GameCreation:
+    type: object
+    required:
+      - player1_id
+    properties:
+      player1_id:
+        type: integer
+      player2_id:
+        type: integer
+  Game:
+    type: object
+    required:
+      - id
+      - player1_id
+      - round
+      - current_turn
+    properties:
+      id:
+        type: integer
+      player1_id:
+        type: integer
+      player2_id:
+        type: integer
+      round:
+        type: integer
+      current_turn:
+        type: integer
+      active:
+        type: boolean
+      board_resources:
+        type: object
+        additionalProperties:
+          type: integer
+      occupied_spaces:
+        type: object
+        additionalProperties:
+          type: integer
+      player_farmers:
+        type: object
+        additionalProperties:
+          type: integer
+      player_structures:
+        type: object
+      penalty:
+        type: object
+      player_resources:
+        type: object
+
+  GameRules:
+    type: object
+    required:
+      - total_rounds
+      - max_players
+      - starting_resources
+    properties:
+      total_rounds:
+        type: integer
+        description: Numărul total de runde în joc
+      max_players:
+        type: integer
+        description: Numărul maxim de jucători
+      starting_resources:
+        type: object
+        description: Resursele cu care începe fiecare jucător
+        properties:
+          wood:
+            type: integer
+          clay:
+            type: integer
+          food:
+            type: integer
+          reed:
+            type: integer
+          stone:
+            type: integer
+          sheep:
+            type: integer
+          boar:
+            type: integer
+          cow:
+            type: integer
+
+  GameState:
+    type: object
+    required:
+      - game_id
+      - round
+      - current_turn
+      - players
+    properties:
+      game_id:
+        type: integer
+        description: ID-ul jocului
+      round:
+        type: integer
+        description: Runda curentă
+      current_turn:
+        type: integer
+        description: ID-ul jucătorului care are rândul
+      board_resources:
+        type: object
+        description: Resurse disponibile pe tablă
+        properties:
+          wood:
+            type: integer
+          clay:
+            type: integer
+          food:
+            type: integer
+          reed:
+            type: integer
+          stone:
+            type: integer
+          sheep:
+            type: integer
+          boar:
+            type: integer
+          cow:
+            type: integer
+
+      players:
+        type: array
+        description: Lista stărilor individuale ale jucătorilor
+        items:
+          type: object
+          properties:
+            player_id:
+              type: integer
+            resources:
+              type: object
+              properties:
+                wood:
+                  type: integer
+                clay:
+                  type: integer
+                food:
+                  type: integer
+                reed:
+                  type: integer
+                stone:
+                  type: integer
+
+
+
+
+
+        
